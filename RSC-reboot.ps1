@@ -1,4 +1,4 @@
-#reboot RL10 instance using RSC 
+#reboot RL10 instance using RSC to invoke decommission scripts
 #authenticate with oauth refresh token ($env:REFRESH_TOKEN)
 #$env:RS_ENDPOINT = rightscale endpoint - ie. us-3.rightscale.com
 
