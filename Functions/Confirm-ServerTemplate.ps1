@@ -13,7 +13,7 @@ function Confirm-ServerTemplate {
 .PARAMETER RsServerTemplateName
     Name of ServerTemplate to import
 .PARAMETER RsServerTemplateRev
-    Revision of ServerTemplate to import
+    (Optional) Revision of ServerTemplate to import
 .PARAMETER LogFile
     Absolute or relative path to log file
 .EXAMPLE
@@ -44,7 +44,7 @@ function Confirm-ServerTemplate {
         [string]
         $RsServerTemplateName,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$false)]
         [string]
         $RsServerTemplateRev,
 
@@ -57,8 +57,11 @@ function Confirm-ServerTemplate {
     Write-LogFile -Message "Checking for existing ServerTemplate in Account No. $RsAccountNum named $RsServerTemplateName" -MessageType "INFO" -LogFile $LogFile
     
     if ($RsServerTemplateRev -eq "HEAD") { $RsServerTemplateRev = "0" }
-
-    $serverTemplates = .\rsc.exe --email $RsEmail --pwd $RsPassword --host $RsEndpoint --account $RsAccountNum cm15 index server_templates "filter[]=name==$RsServerTemplateName" "filter[]=revision==$RsServerTemplateRev" | convertfrom-json 
+    if ($RsServerTemplateRev) {
+        $serverTemplates = .\rsc.exe --email $RsEmail --pwd $RsPassword --host $RsEndpoint --account $RsAccountNum cm15 index server_templates "filter[]=name==$RsServerTemplateName" "filter[]=revision==$RsServerTemplateRev" | convertfrom-json 
+    } else {
+        $serverTemplates = .\rsc.exe --email $RsEmail --pwd $RsPassword --host $RsEndpoint --account $RsAccountNum cm15 index server_templates "filter[]=name==$RsServerTemplateName" | convertfrom-json 
+    }
     
     if (!$serverTemplates) {
         Write-LogFile -Message "No ServerTemplates named $RsServerTemplateName with Rev $RsServerTemplateRev were found in Account No. $RsAccountNum " -MessageType "WARNING" -LogFile $LogFile

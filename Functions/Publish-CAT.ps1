@@ -80,7 +80,7 @@ function Publish-CAT {
 
     if ($Publish) {
         Write-LogFile -Message "Publish flag set.  Attempting to publish CAT to Self-Service Catalog" -MessageType "INFO" -LogFile $LogFile
-        .\rsc.exe --email $RsEmail --pwd $RsPassword --host $RsEndpoint --account $RsAccountNum ss publish $($cat_postcheck.href)
+        .\rsc.exe --email $RsEmail --pwd $RsPassword --host $RsEndpoint --account $RsAccountNum ss publish $($cat_postcheck.href) "id=$($cat_postcheck.id)"
         $catalog = .\rsc.exe --email $RsEmail --pwd $RsPassword --host $RsEndpoint --account $RsAccountNum ss index "/api/catalog/catalogs/$RsAccountNum/applications" | ConvertFrom-Json
         $application = $catalog | Where-Object name -eq $cat_name
         if ($application) {
