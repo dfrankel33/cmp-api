@@ -18,7 +18,7 @@ if ($date.Length -ne 10) {
 } else {
     Write-Output "Start time: $(get-date)"
     $my_date = get-date $date
-    $clouds = ./rsc --email $email --pwd $password --host $endpoint --account $account cm15 index clouds | convertfrom-json
+    $clouds = .\rsc.exe --email $email --pwd $password --host $endpoint --account $account cm15 index clouds | convertfrom-json
 
     $cloud_hash = @{}
     foreach ($cloud in $clouds) {$cloud_hash.Add($(($cloud.links | where rel -eq self).href), $cloud.display_name)}
@@ -27,7 +27,7 @@ if ($date.Length -ne 10) {
     foreach ($cloud in $clouds) { 
         if ($($cloud.links | where rel -eq volumes)) {
             $vol = @()
-            $vol = ./rsc --email $email --pwd $password --host $endpoint --account $account cm15 index $($cloud.links | where rel -eq volumes).href | ConvertFrom-Json
+            $vol = .\rsc.exe --email $email --pwd $password --host $endpoint --account $account cm15 index $($cloud.links | where rel -eq volumes).href | ConvertFrom-Json
             $all_vol += $vol 
         }
     }
@@ -39,7 +39,7 @@ if ($date.Length -ne 10) {
     foreach ($cloud in $clouds) {  
         if ($($cloud.links | where rel -eq volume_snapshots)) {
             $snaps = @()
-            $snaps = ./rsc --email $email --pwd $password --host $endpoint --account $account cm15 index $($cloud.links | where rel -eq volume_snapshots).href | ConvertFrom-Json
+            $snaps = .\rsc.exe --email $email --pwd $password --host $endpoint --account $account cm15 index $($cloud.links | where rel -eq volume_snapshots).href | ConvertFrom-Json
             $all_snaps += $snaps 
             $modified_snaps += $snaps
         }
@@ -93,6 +93,6 @@ if ($date.Length -ne 10) {
 
 }
 
-$target_snaps | Export-Csv "./$account-snapshots.csv"
+$target_snaps | Export-Csv ".\$account-snapshots.csv"
 
 Write-Output "End time: $(get-date)"
