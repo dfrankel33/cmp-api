@@ -13,6 +13,8 @@ $account = Read-Host "Enter RS Account Number" # RS account number
 
 $date = Read-Host "Input date for newest allowed volume snapshots (format: YYYY/MM/DD).  Note: snapshots created on or after this date will not be targeted unless the parent volume no longer exists."
 
+$aws_account = Read-Host "Input AWS Account Number (leave blank if no AWS clouds)"
+
 if ($date.Length -ne 10) {
     Write-Warning "Date value not in correct format. Exiting.."
 } else {
@@ -38,10 +40,17 @@ if ($date.Length -ne 10) {
     [System.Collections.ArrayList]$modified_snaps = @()
     foreach ($cloud in $clouds) {  
         if ($($cloud.links | where rel -eq volume_snapshots)) {
-            $snaps = @()
-            $snaps = .\rsc.exe --email $email --pwd $password --host $endpoint --account $account cm15 index $($cloud.links | where rel -eq volume_snapshots).href | ConvertFrom-Json
-            $all_snaps += $snaps 
-            $modified_snaps += $snaps
+            if (($cloud.display_name -like "AWS*") -and ($aws_account -ne $null)) {
+                $snaps = @()
+                $snaps = .\rsc.exe --email $email --pwd $password --host $endpoint --account $account cm15 index $($cloud.links | where rel -eq volume_snapshots).href "filter[]=aws_owner_id==$aws_account" | ConvertFrom-Json
+                $all_snaps += $snaps 
+                $modified_snaps += $snaps
+            } else {
+                $snaps = @()
+                $snaps = .\rsc.exe --email $email --pwd $password --host $endpoint --account $account cm15 index $($cloud.links | where rel -eq volume_snapshots).href | ConvertFrom-Json
+                $all_snaps += $snaps 
+                $modified_snaps += $snaps
+            }
         }
     }
 
