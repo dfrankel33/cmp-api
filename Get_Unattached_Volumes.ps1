@@ -1,22 +1,34 @@
 #script assumes that rsc.exe is in the working directory
-$email = "" # email address associated with RS user
-$password = "" # RS password
-$endpoint = "" # us-3.rightscale.com -or- us-4.rightscale.com
-$account = "" # RS account number
+$email = Read-Host "Enter RS email address" # email address associated with RS user
+$pass = Read-Host "Enter RS Password" -AsSecureString # RS password
+$endpoint = Read-Host "Enter RS API endpoint (us-3.rightscale.com -or- us-4.rightscale.com)" # us-3.rightscale.com -or- us-4.rightscale.com
+$accounts = Read-Host "Enter RS Account Number(s) (comma-separated if multiple)" # RS account number
 
-$clouds = .\rsc.exe --email $email --pwd $password --host $endpoint --account $account cm15 index clouds | convertfrom-json
+$Ptr = [System.Runtime.InteropServices.Marshal]::SecureStringToCoTaskMemUnicode($pass)
+$password = [System.Runtime.InteropServices.Marshal]::PtrToStringUni($Ptr)
+[System.Runtime.InteropServices.Marshal]::ZeroFreeCoTaskMemUnicode($Ptr)
 
-$all_vol = @()
-foreach ($cloud in $clouds) {                                                                              
-    $vol = @()
-    $vol = .\rsc.exe --email $email --pwd $password --host $endpoint --account $account cm15 index $($cloud.links | where rel -eq volumes).href | ConvertFrom-Json
-    $all_vol += $vol 
-}         
+if ($accounts -like "*,*") {
+    $accounts = $accounts.Split(",")
+}
+foreach ($account in $accounts) {
+    $account = $account.Trim()
+    $clouds = ./rsc --email $email --pwd $password --host $endpoint --account $account cm15 index clouds | convertfrom-json
 
-$unattached = @()
-foreach ($vol in $all_vol) { 
-    if (($vol.links | where rel -eq current_volume_attachment) -eq $null) { 
-        $unattached += $vol 
-    }
-}                                              
-$unattached | Export-Csv ".\$account-unattached-volumes.csv"  
+    $all_vol = @()
+    foreach ($cloud in $clouds) {
+        if ($($cloud.links | Where-Object rel -eq volumes)) {                                                                              
+            $vol = @()
+            $vol = ./rsc --email $email --pwd $password --host $endpoint --account $account cm15 index $($cloud.links | Where-Object rel -eq volumes).href | ConvertFrom-Json
+            $all_vol += $vol 
+        }
+    }         
+
+    $unattached = @()
+    foreach ($vol in $all_vol) { 
+        if (($vol.status -eq "available") -and ($vol.resource_uid -notlike "*system@Microsoft.Compute/Images/*") -and ($vol.resource_uid -notlike "*@images*")) { 
+            $unattached += $vol 
+        }
+    }                                              
+    $unattached | Select-Object name,description,resource_uid,size,status,created_at,updated_at,cloud_specific_attributes,@{name="href";expression={$($_.links | Where-Object rel -eq "self").href}} | Export-Csv "./$account-unattached-volumes.csv"  
+}
