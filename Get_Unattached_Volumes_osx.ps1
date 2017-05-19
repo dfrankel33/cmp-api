@@ -3,6 +3,7 @@ $email = Read-Host "Enter RS email address" # email address associated with RS u
 $pass = Read-Host "Enter RS Password" -AsSecureString # RS password
 $endpoint = Read-Host "Enter RS API endpoint (us-3.rightscale.com -or- us-4.rightscale.com)" # us-3.rightscale.com -or- us-4.rightscale.com
 $accounts = Read-Host "Enter RS Account Number(s) (comma-separated if multiple)" # RS account number
+$customer_name = Read-Host "Enter Customer Name"
 
 $Ptr = [System.Runtime.InteropServices.Marshal]::SecureStringToCoTaskMemUnicode($pass)
 $password = [System.Runtime.InteropServices.Marshal]::PtrToStringUni($Ptr)
@@ -11,6 +12,8 @@ $password = [System.Runtime.InteropServices.Marshal]::PtrToStringUni($Ptr)
 if ($accounts -like "*,*") {
     $accounts = $accounts.Split(",")
 }
+
+$total_unattached = @()
 foreach ($account in $accounts) {
     $account = $account.Trim()
     $clouds = ./rsc --email $email --pwd $password --host $endpoint --account $account cm15 index clouds | convertfrom-json
@@ -30,5 +33,7 @@ foreach ($account in $accounts) {
             $unattached += $vol 
         }
     }                                              
-    $unattached | Select-Object name,description,resource_uid,size,status,created_at,updated_at,cloud_specific_attributes,@{name="href";expression={$($_.links | Where-Object rel -eq "self").href}} | Export-Csv "./$account-unattached-volumes.csv"  
+    $total_unattached += $unattached | Select-Object @{name="account_number";expression={$account}},name,description,resource_uid,size,status,created_at,updated_at,cloud_specific_attributes,@{name="href";expression={$($_.links | Where-Object rel -eq "self").href}} #| Export-Csv "./$account-unattached-volumes.csv"  
 }
+
+$total_unattached | Export-Csv "./$customer_name-unattached-volumes.csv"
