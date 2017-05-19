@@ -4,13 +4,13 @@ $endpoint = Read-Host "Enter RS API endpoint (us-3.rightscale.com -or- us-4.righ
 $account = Read-Host "Enter RS Account Number" # RS account number
 
 $account = $account.Trim()
-$clouds = .\rsc.exe --refreshToken $token --host $endpoint --account $account cm15 index clouds | convertfrom-json
+$clouds = ./rsc --refreshToken $token --host $endpoint --account $account cm15 index clouds | convertfrom-json
 
 $all_vol = @()
 foreach ($cloud in $clouds) {
     if ($($cloud.links | Where-Object rel -eq volumes)) {                                                                              
         $vol = @()
-        $vol = .\rsc.exe --refreshToken $token --host $endpoint --account $account cm15 index $($cloud.links | Where-Object rel -eq volumes).href | ConvertFrom-Json
+        $vol = ./rsc --refreshToken $token --host $endpoint --account $account cm15 index $($cloud.links | Where-Object rel -eq volumes).href | ConvertFrom-Json
         $all_vol += $vol 
     }
 }         
@@ -21,4 +21,4 @@ foreach ($vol in $all_vol) {
         $unattached += $vol 
     }
 }                                              
-$unattached | Select-Object name,description,resource_uid,size,status,created_at,updated_at,cloud_specific_attributes,@{name="href";expression={$($_.links | Where-Object rel -eq "self").href}} | Export-Csv ".\$account-unattached-volumes.csv"  
+$unattached | Select-Object name,description,resource_uid,size,status,created_at,updated_at,cloud_specific_attributes,@{name="href";expression={$($_.links | Where-Object rel -eq "self").href}} | Export-Csv "./$account-unattached-volumes.csv"  
