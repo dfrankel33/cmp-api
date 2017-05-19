@@ -13,13 +13,13 @@ if ($accounts -like "*,*") {
 }
 foreach ($account in $accounts) {
     $account = $account.Trim()
-    $clouds = ./rsc --email $email --pwd $password --host $endpoint --account $account cm15 index clouds | convertfrom-json
+    $clouds = .\rsc.exe --email $email --pwd $password --host $endpoint --account $account cm15 index clouds | convertfrom-json
 
     $all_vol = @()
     foreach ($cloud in $clouds) {
         if ($($cloud.links | Where-Object rel -eq volumes)) {                                                                              
             $vol = @()
-            $vol = ./rsc --email $email --pwd $password --host $endpoint --account $account cm15 index $($cloud.links | Where-Object rel -eq volumes).href | ConvertFrom-Json
+            $vol = .\rsc.exe --email $email --pwd $password --host $endpoint --account $account cm15 index $($cloud.links | Where-Object rel -eq volumes).href | ConvertFrom-Json
             $all_vol += $vol 
         }
     }         
@@ -30,5 +30,5 @@ foreach ($account in $accounts) {
             $unattached += $vol 
         }
     }                                              
-    $unattached | Select-Object name,description,resource_uid,size,status,created_at,updated_at,cloud_specific_attributes,@{name="href";expression={$($_.links | Where-Object rel -eq "self").href}} | Export-Csv "./$account-unattached-volumes.csv"  
+    $unattached | Select-Object name,description,resource_uid,size,status,created_at,updated_at,cloud_specific_attributes,@{name="href";expression={$($_.links | Where-Object rel -eq "self").href}} | Export-Csv ".\$account-unattached-volumes.csv"  
 }
