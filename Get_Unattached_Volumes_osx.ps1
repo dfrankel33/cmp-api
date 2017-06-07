@@ -1,13 +1,14 @@
 #script assumes that rsc.exe is in the working directory
 $email = Read-Host "Enter RS email address" # email address associated with RS user
-$pass = Read-Host "Enter RS Password" -AsSecureString # RS password
+#$pass = Read-Host "Enter RS Password" -AsSecureString # RS password
+$password = Read-Host "Enter RS Password" # RS password
 $endpoint = Read-Host "Enter RS API endpoint (us-3.rightscale.com -or- us-4.rightscale.com)" # us-3.rightscale.com -or- us-4.rightscale.com
 $accounts = Read-Host "Enter RS Account Number(s) (comma-separated if multiple)" # RS account number
 $customer_name = Read-Host "Enter Customer Name"
 
-$Ptr = [System.Runtime.InteropServices.Marshal]::SecureStringToCoTaskMemUnicode($pass)
-$password = [System.Runtime.InteropServices.Marshal]::PtrToStringUni($Ptr)
-[System.Runtime.InteropServices.Marshal]::ZeroFreeCoTaskMemUnicode($Ptr)
+#$Ptr = [System.Runtime.InteropServices.Marshal]::SecureStringToCoTaskMemUnicode($pass)
+#$password = [System.Runtime.InteropServices.Marshal]::PtrToStringUni($Ptr)
+#[System.Runtime.InteropServices.Marshal]::ZeroFreeCoTaskMemUnicode($Ptr)
 
 if ($accounts -like "*,*") {
     $accounts = $accounts.Split(",")
