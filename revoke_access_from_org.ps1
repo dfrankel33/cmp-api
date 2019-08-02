@@ -22,7 +22,7 @@ foreach ($orgUser in $orgUsers){
   } else {
     # Skip user
   }
-}
+} 
 
 $orgProjects = Invoke-RestMethod -UseBasicParsing -Uri "https://$RS_HOST/grs/orgs/$GRS_ACCOUNT/projects" -Method Get -Headers $grsHeader -ContentType $contentType
 $projects = @()
