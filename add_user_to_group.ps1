@@ -4,7 +4,7 @@ param(
   $GROUP_ID = "1199",
   $RS_ACCOUNT = "30601",
   $USER_IDS = @("120400"),
-  $REFRESH_TOKEN = "900b906efdfa30b73d46a5c972a67fc0726d27fd" #from Frankel-Master
+  $REFRESH_TOKEN = ""
 )
 
 

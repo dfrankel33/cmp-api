@@ -1,9 +1,9 @@
 param(
   $RS_HOST = "us-3.rightscale.com",
-  $EMAIL_DOMAIN = "ubc.ca",
+  $EMAIL_DOMAIN = "example.com",
   $GRS_ACCOUNT = "27684",
   $RS_ACCOUNT = "121503",
-  $REFRESH_TOKEN = "900b906efdfa30b73d46a5c972a67fc0726d27fd" #from Frankel-Master
+  $REFRESH_TOKEN = ""
 )
 
 $contentType = "application/json"
