@@ -1,8 +1,9 @@
 param(
-  $RS_HOST = "us-4.rightscale.com",
+  $RS_HOST = "us-3.rightscale.com",
   $GRS_ORG = "",
   $USER_IDS = @(""), 
-  $REFRESH_TOKEN = "", 
+  $REFRESH_TOKEN = "",
+  $ROLE_TITLE = "billing_center_viewer",
   $REVOKE_USER_IDS = @("") 
 )
 
@@ -117,7 +118,7 @@ $grsHeader = @{
     "Authorization"="Bearer $accessToken"
 }
 $rolesResult = Invoke-RestMethod -UseBasicParsing -Uri "https://$RS_HOST/grs/orgs/$GRS_ORG/roles" -Method Get -Headers $grsHeader -ContentType $contentType
-$roleHref = ($rolesResult | Where-Object name -eq "enterprise_manager").href
+$roleHref = ($rolesResult | Where-Object name -eq $ROLE_TITLE).href
 
 foreach ($UserID in $USER_IDS){
     # Associate Users with Org

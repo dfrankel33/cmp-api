@@ -1,8 +1,7 @@
 param(
   $RS_HOST = "us-3.rightscale.com",
-  $GRS_ACCOUNT = "78",
+  $GRS_ACCOUNT = "6",
   $GROUP_ID = "1199",
-  $RS_ACCOUNT = "30601",
   $USER_IDS = @("120400"),
   $REFRESH_TOKEN = ""
 )
@@ -92,8 +91,6 @@ foreach ($existingUser in $existingUsers) {
 }
 
 foreach ($UserID in $USER_IDS){
-  #Write-Output "Adding new user to the org. User ID: $UserID"
-  #rsc --refreshToken $REFRESH_TOKEN --host $RS_HOST --account $RS_ACCOUNT cm15 create permissions permission["user_href"]="/api/users/$UserID" permission["role_title"]="observer"
   $object = New-Object -TypeName PSObject
   $object | Add-Member -MemberType NoteProperty -Name id -Value $UserID
   $object | Add-Member -MemberType NoteProperty -Name href -Value "/grs/users/$UserID"
@@ -106,17 +103,3 @@ write-output $userPayload
 $userPayload = $userPayload | Sort-Object -Unique -Property id
 
 Set-RSGroupMembership -RSHost $RS_HOST -AccessToken $accessToken -GRSAccount $GRS_ACCOUNT -GroupID $GROUP_ID -userPayload $userPayload 
-
-<#
-foreach ($UserID in $USER_IDS){
-    Write-Output "Revoking temporary, explicit observer access for user $UserID"
-    $roles = rsc --refreshToken $REFRESH_TOKEN --host $RS_HOST --account $RS_ACCOUNT cm15 index permissions filter[]=user_href==/api/users/$UserID | convertfrom-json
-    $observer_permissions = $roles | where role_title -eq "observer"
-    foreach ($perm in $observer_permissions) { 
-        if ($($perm.links | where rel -eq account).href -eq "/api/accounts/$RS_ACCOUNT") { 
-            $temp_perm_href = $($perm.links | where rel -eq self).href 
-        } 
-    }
-    rsc --refreshToken $REFRESH_TOKEN --host $RS_HOST --account $RS_ACCOUNT cm15 destroy $temp_perm_href
-}  
-#>

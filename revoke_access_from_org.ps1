@@ -1,8 +1,7 @@
 param(
   $RS_HOST = "us-3.rightscale.com",
   $EMAIL_DOMAIN = "example.com",
-  $GRS_ACCOUNT = "27684",
-  $RS_ACCOUNT = "121503",
+  $GRS_ACCOUNT = "78",
   $REFRESH_TOKEN = ""
 )
 
