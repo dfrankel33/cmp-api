@@ -8,9 +8,7 @@ param(
 function Remove-OrgUser ($RS_HOST, $ACCESS_TOKEN, $GRS_ORG, $USER_ID) {
     try {
         Write-Output "Removing User (ID: $USER_ID) from Org $GRS_ORG..."
-        
-        $contentType = "application/json"
-        
+                
         $grsHeader = @{
             "X-API-Version"="2.0";
             "Authorization"="Bearer $ACCESS_TOKEN"
