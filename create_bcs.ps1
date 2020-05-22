@@ -262,3 +262,49 @@ foreach ($parentBc in $childBCs){
   Update-ChildAllocationTable -ACCESS_TOKEN $accessToken -PARENT_HREF $parentBc.href -PAYLOAD $allocationTable -SEQUENCE_NUMBER $currentSequenceNumber
 }
 
+#Index BCs (again)
+$existingBCs = Index-BCs -ACCESS_TOKEN $accessToken -GRS_ACCOUNT $GRS_ACCOUNT
+$l2BCs = $existingBCs | where parent_id -In $topLevelBCs.id | where name -ne unallocated
+$l3BCs = $existingBCs | where parent_id -In $l2BCs.id | where name -ne unallocated
+#Loop through Child BCs
+foreach ($parentBc in $l3BCs){
+  Write-Output "Looping on $($parentBc.name)"
+  $childBcNames = ($rules | where bc3 -eq $parentBc.name | where bc4 -ne "").bc3 | select -unique
+  #Index Child BCs
+  $parentBc = Get-BC -ACCESS_TOKEN $accessToken -BC_HREF $parentBc.href 
+  if ($parentBc.children -eq $null){
+    # Create all child BCs
+    foreach ($childBcName in $childBcNames){
+      Create-BC -ACCESS_TOKEN $accessToken -GRS_ACCOUNT $GRS_ACCOUNT -BC_NAME $childBcName -PARENT_HREF $parentBc.href
+    }
+  } else {
+    #Create non-existant Child BCs
+    foreach ($childBcName in $childBcNames){
+      if (($parentBc.children | where name -ne unallocated).name -notcontains $childBcName){
+        Create-BC -ACCESS_TOKEN $accessToken -GRS_ACCOUNT $GRS_ACCOUNT -BC_NAME $childBcName -PARENT_HREF $parentBc.href
+      }
+    }
+  }
+  #Index Child BCs (again)
+  $parentBc = Get-BC -ACCESS_TOKEN $accessToken -BC_HREF $parentBc.href 
+
+  #Get current Allocation Table
+  $childAllocationTable = Get-ChildAllocationTable -ACCESS_TOKEN $accessToken -PARENT_HREF $parentBc.href
+  $currentSequenceNumber = $childAllocationTable.sequence_number
+  $putBcRules = @()
+  foreach ($childBcName in $childBcNames) {
+    $accountIds = ($rules | where bc4 -eq $childBcName).project_id
+    $bcId = ($parentBc.children | where name -eq $childBcName).id 
+    $bcHref = "/analytics/orgs/$GRS_ACCOUNT/billing_centers/$bcId"
+    if ($accountIds.count -lt 2){$accountIds = @($accountIds)} 
+    $allocationRule = [ordered]@{"billing_center"=[ordered]@{"href"=$bcHref};"cloud_vendor_account_ids"=$accountIds}
+    $putBcRules += $allocationRule
+  }
+  if ($currentSequenceNumber -eq $null){
+    $allocationTable = [ordered]@{"allocation_rules"=$putBcRules}
+  } else {
+    $allocationTable = [ordered]@{"allocation_rules"=$putBcRules;"sequence_number"=$currentSequenceNumber}
+  }
+  #Put child BC Allocation Table
+  Update-ChildAllocationTable -ACCESS_TOKEN $accessToken -PARENT_HREF $parentBc.href -PAYLOAD $allocationTable -SEQUENCE_NUMBER $currentSequenceNumber
+}
