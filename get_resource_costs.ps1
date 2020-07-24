@@ -1,6 +1,6 @@
 param(
-  $GRS_ACCOUNT = "",
-  $REFRESH_TOKEN = "",
+  $GRS_ACCOUNT = "28507",
+  $REFRESH_TOKEN = "2b54613f86bf9db092b9affa5508f362e2039e95",
   $RS_HOST = "us-3.rightscale.com"
 )
 
@@ -49,14 +49,14 @@ $existingBCs = Index-BCs -ACCESS_TOKEN $accessToken -GRS_ACCOUNT $GRS_ACCOUNT
 $parentBCs = $existingBCs | where parent_id -eq $null
 $today = get-date
 $daysInMonth = $today.day +1
-$numberOfDays = @(1..$daysInMonth)
+$numberOfDays = @(1..30)
 
 $monthlyCosts = @()
 foreach ($day in $numberOfDays) {
-  $costs = Get-BcCosts -ACCESS_TOKEN $accessToken -GRS_ACCOUNT $GRS_ACCOUNT -BC_IDS $parentBCs.id -START_DAY (get-date $today.AddDays(-($day+1)) -Format yyyy-MM-dd).ToString() -END_DAY (get-date $today.AddDays(-$day) -Format yyyy-MM-dd).ToString()
+  $costs = Get-BcCosts -ACCESS_TOKEN $accessToken -GRS_ACCOUNT $GRS_ACCOUNT -BC_IDS $parentBCs.id -START_DAY "2020-06-$day" -END_DAY "2020-06-$($day+1)"
   foreach ($cost in $costs.rows){
     $object = New-Object psobject
-    $object | Add-Member -MemberType NoteProperty -Name UsageStartTime -Value $(get-date $today.AddDays(-($day+1)) -Format yyyy-MM-dd).ToString()
+    $object | Add-Member -MemberType NoteProperty -Name UsageStartTime -Value "2020-06-$day"
     $object | Add-Member -MemberType NoteProperty -Name UsageAmount -Value $($cost.metrics.usage_amount -as [decimal])
     $object | Add-Member -MemberType NoteProperty -Name Cost -Value $($cost.metrics.cost_nonamortized_unblended_adj -as [decimal])
     $object | Add-Member -MemberType NoteProperty -Name Category -Value $cost.dimensions.category
@@ -70,3 +70,5 @@ foreach ($day in $numberOfDays) {
     $monthlyCosts += $object
   }
 }
+
+$monthlyCosts | Export-Csv .\costs-export.csv
